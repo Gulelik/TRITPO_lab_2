@@ -64,7 +64,7 @@ prac = {'name': 'Практический курс компьютерных се
         'playlist': '', 'links': []}
 
 
-class Film:
+class Film: // класс для работы с базой данных
     def __init__(self):
         self.dur = None
         self.url = None
@@ -99,7 +99,7 @@ def send_welcome(message):
 def check_last_film(username):        // нахождение последнего просмотренного фильма в таблице people_watch базы данных
 
     cur = conn.cursor()
-    cur.execute("select count(*) from people_watch")
+    cur.execute("select count(*) from people_watch") 
     row_count = cur.fetchone()
     print(row_count[0])
     
