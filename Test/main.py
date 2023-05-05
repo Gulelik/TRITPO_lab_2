@@ -7,7 +7,7 @@ import numpy as np
 from telebot import types
 import json
 
-bot = telebot.TeleBot("5602511589:AAEjX_2riWdmLPQgEildZZrjhHfmhnDy-FU")
+bot = telebot.TeleBot("5602511589:AAEjX_2riWdmLPQgEildZZrjhHfmhnDy-FU")              
 with open('database_films.db', 'a+') as _:
     pass
 conn = sqlite3.connect('database_films.db', check_same_thread=False)
@@ -83,20 +83,20 @@ class Film:
 @bot.message_handler(commands=['start'])
 def send_welcome(message):
     global state
-    file = open('init.sql', mode='r')
+    file = open('init.sql', mode='r')     // начало работы бота, подключение базы данных 
     cur = conn.cursor()
     sql = file.read()
     cur.executescript(sql)
     conn.commit()
-    state = "begin"
+    state = "begin"          // флаги для обработчиков
     bot.send_message(message.chat.id, f"Привет, {message.from_user.first_name} {message.from_user.last_name}")
-    markup_reply = types.InlineKeyboardMarkup()
+    markup_reply = types.InlineKeyboardMarkup()          
     yes = types.InlineKeyboardButton(text='Да', callback_data='Да')
     no = types.InlineKeyboardButton(text='Нет', callback_data='Нет')
     markup_reply.add(yes, no)
     bot.send_message(message.chat.id, "Хотите ли вы отдохнуть?", reply_markup=markup_reply)
 
-def check_last_film(username):
+def check_last_film(username):        // нахождение последнего просмотренного фильма в таблице people_watch базы данных
 
     cur = conn.cursor()
     cur.execute("select count(*) from people_watch")
@@ -106,13 +106,13 @@ def check_last_film(username):
     cur.execute("SELECT * FROM films where films.id in (select film_id from people_watch where p_name = ? ORDER BY p_name DESC LIMIT 1);"
                 , (username,))
                 
-    all_results = cur.fetchall()
+    all_results = cur.fetchall()   
     print(len(all_results))
     
     conn.commit()
     cur_film.update(data=all_results[index[0]])
     
-def generate_film(username):
+def generate_film(username):   //генерация рекомендации бота по пропросмотру фильмов 
     cur = conn.cursor()
     cur.execute("SELECT * FROM films where films.id not in (select film_id from people_watch where p_name = ?);"
                 , (username,))
@@ -123,17 +123,17 @@ def generate_film(username):
     cur_film.update(data=all_results[index[0]])
 
 
-def filter_to_begin(_):
+def filter_to_begin(_):     // проверка флагов 
     global state
     if state != 'begin':
         return False
     return True
 
 
-cur_film = Film()
+cur_film = Film()    
 
 
-@bot.callback_query_handler(func=filter_to_begin)
+@bot.callback_query_handler(func=filter_to_begin)    // вывод информациии о сгенерированном предложении
 def callback_to_start(call):
     global state
     if call.data == 'Да':
@@ -165,7 +165,7 @@ def filter_to_studying(call):
     return True
 
 
-@bot.callback_query_handler(func=filter_to_studying)
+@bot.callback_query_handler(func=filter_to_studying)    // рекомендации по курсам
 def callback_to_studying(call):
     global state
     ind = int(call.data)
@@ -184,7 +184,7 @@ def filter_for_networks(call):
     return False
 
 
-@bot.callback_query_handler(func=filter_for_networks)
+@bot.callback_query_handler(func=filter_for_networks)  //выбор курсов
 def callback_to_networks(call):
     global state
     markup = types.InlineKeyboardMarkup()
@@ -202,7 +202,7 @@ def filter_track(_):
     return True
 
 
-@bot.callback_query_handler(func=filter_track)
+@bot.callback_query_handler(func=filter_track)  // выбор уровня обучения
 def callback_to_networks(call):
     global state
     if call.data == 'thr':
@@ -238,20 +238,20 @@ def callback_to_networks(call):
     bot.send_message(call.message.chat.id, "Введите /start, чтобы начать заново")
 
 
-def filter_to_watching_film(_):
+def filter_to_watching_film(_):    
     global state
     if state != 'question_for_watching':
         return False
     return True
 
 
-def save_watching(username):
+def save_watching(username):  // запись просмотренных фильмов в базу данных
     cur = conn.cursor()
     cur.execute("INSERT OR IGNORE INTO people_watch values(?, ?);", (username, cur_film.id))
     conn.commit()
 
 
-@bot.callback_query_handler(func=filter_to_watching_film)
+@bot.callback_query_handler(func=filter_to_watching_film)     // оценка фильма или просмотр других предложений
 def callback_to_start(call):
     global state
     if call.data == 'yes':
@@ -273,7 +273,7 @@ def filter_to_est(_):
     return True
 
 
-@bot.message_handler(func=filter_to_est)
+@bot.message_handler(func=filter_to_est)   // выставление оценки и проверка условий 
 def estimation(message):
     global state
     if not message.text.isdigit() or int(message.text) < 1 or int(message.text) > 10:
