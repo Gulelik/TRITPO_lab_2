@@ -96,7 +96,22 @@ def send_welcome(message):
     markup_reply.add(yes, no)
     bot.send_message(message.chat.id, "Хотите ли вы отдохнуть?", reply_markup=markup_reply)
 
+def check_last_film(username):
 
+    cur = conn.cursor()
+    cur.execute("select count(*) from people_watch")
+    row_count = cur.fetchone()
+    print(row_count[0])
+    
+    cur.execute("SELECT * FROM films where films.id in (select film_id from people_watch where p_name = ? ORDER BY p_name DESC LIMIT 1);"
+                , (username,))
+                
+    all_results = cur.fetchall()
+    print(len(all_results))
+    
+    conn.commit()
+    cur_film.update(data=all_results[index[0]])
+    
 def generate_film(username):
     cur = conn.cursor()
     cur.execute("SELECT * FROM films where films.id not in (select film_id from people_watch where p_name = ?);"
